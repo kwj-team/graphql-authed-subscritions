@@ -1,11 +1,15 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import { ApolloServer, gql } from "apollo-server-express";
-import express from "express";
+import express, { Request } from "express";
 import { PubSub } from "graphql-subscriptions";
 import { useServer } from "graphql-ws/lib/use/ws";
-import { createServer } from "http";
+import { createHandler } from "graphql-sse";
+import { IncomingMessage, createServer } from "http";
 import { WebSocketServer } from "ws";
+import cors from "cors";
+import { CloseCode } from "graphql-ws";
+import cookie from "cookie";
 
 const PORT = 4000;
 const pubsub = new PubSub();
@@ -42,6 +46,37 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 // Create an Express app and HTTP server; we will attach the WebSocket
 // server and the ApolloServer to this HTTP server.
 const app = express();
+
+function auth(req: IncomingMessage) {
+  if (req) {
+    const cookies = cookie.parse(req.headers.cookie);
+    return cookies.auth === "123";
+  }
+  return false;
+}
+
+// Create the GraphQL over SSE handler
+const handler = createHandler({
+  schema, // from the previous step
+  authenticate: (req, res) => {
+    if (auth(req)) {
+      return "";
+    }
+
+    res.writeHead(401, "Unauthorized").end();
+    return;
+  },
+});
+
+app.use(
+  `/graphql/stream`,
+  cors({
+    allowedHeaders: "cookie",
+    origin: true,
+    credentials: true,
+  }),
+  handler
+);
 const httpServer = createServer(app);
 
 // Set up WebSocket server.
@@ -49,7 +84,29 @@ const wsServer = new WebSocketServer({
   server: httpServer,
   path: "/graphql",
 });
-const serverCleanup = useServer({ schema }, wsServer);
+const serverCleanup = useServer(
+  {
+    schema,
+    onConnect: async (ctx) => {
+      // do your auth check on every connect
+      if (!(await auth(ctx.extra.request)))
+        // returning false from the onConnect callback will close with `4403: Forbidden`;
+        // therefore, being synonymous to ctx.extra.socket.close(4403, 'Forbidden');
+        return false;
+    },
+    onSubscribe: async (ctx) => {
+      // or maybe on every subscribe
+      if (!(await auth(ctx.extra.request)))
+        return ctx.extra.socket.close(CloseCode.Forbidden, "Forbidden");
+    },
+    onNext: async (ctx) => {
+      // why not on every result emission? lol
+      if (!(await auth(ctx.extra.request)))
+        return ctx.extra.socket.close(CloseCode.Forbidden, "Forbidden");
+    },
+  },
+  wsServer
+);
 
 // Set up ApolloServer.
 const server = new ApolloServer({
@@ -70,6 +127,7 @@ const server = new ApolloServer({
     },
   ],
 });
+
 await server.start();
 server.applyMiddleware({ app });
 
@@ -80,6 +138,9 @@ httpServer.listen(PORT, () => {
   );
   console.log(
     `🚀 Subscription endpoint ready at ws://localhost:${PORT}${server.graphqlPath}`
+  );
+  console.log(
+    `🚀 Subscription server-events endpoint ready at http://localhost:${PORT}${server.graphqlPath}/stream`
   );
 });
 

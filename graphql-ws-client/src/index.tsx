@@ -13,9 +13,15 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import { SSELink } from "./SSELink";
 
 const httpLink = new HttpLink({
   uri: "http://localhost:4000/graphql",
+});
+
+const sseLink = new SSELink({
+  url: "http://localhost:4000/graphql/stream",
+  credentials: "include",
 });
 
 const wsLink = new GraphQLWsLink(
@@ -32,7 +38,7 @@ const splitLink = split(
       definition.operation === "subscription"
     );
   },
-  wsLink,
+  process.env.REACT_APP_SUBS === "ws" ? wsLink : sseLink,
   httpLink
 );
 
