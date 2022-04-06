@@ -40,3 +40,14 @@ Our current system authorized with COOKIES so that approach seemed like the best
 - Websockets
 - Long-polling
 - Polling
+
+## Running
+`make start-backend`
+and in different window either
+`make start-sse-frontend` or `make start-ws-frontend`
+
+<!-- TODO WJ -->
+
+Write down a userless-login
+Write example of browser cookie setup
+Write example of start usage 
