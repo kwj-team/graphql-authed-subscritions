@@ -1,8 +1,15 @@
-start-ws-backend: 
-	npm run --prefix graphql-ws-server start
+setup: setup-backend setup-frontend
 
-start-ws-frontend:
-	REACT_APP_SUBS=ws npm run --prefix graphql-ws-client start
+setup-backend:
+	cd graphql-server && yarn
+setup-frontend:
+	cd graphql-client && yarn
 
-start-sse-frontend:
-	npm run --prefix graphql-ws-client start
+start-backend: setup-backend
+	npm run --prefix graphql-server start
+
+start-ws-frontend: setup-frontend
+	npm run --prefix graphql-client codegen && REACT_APP_SUBS=ws npm run --prefix graphql-client start
+
+start-sse-frontend: setup-frontend
+	npm run --prefix graphql-client start

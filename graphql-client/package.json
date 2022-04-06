@@ -1,5 +1,5 @@
 {
-  "name": "graphql-ws-client",
+  "name": "graphql-client",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
