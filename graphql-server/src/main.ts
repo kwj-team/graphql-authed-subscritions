@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import { ApolloServer, gql } from "apollo-server-express";
-import express, { Request } from "express";
+import express, { Request, Response } from "express";
 import { PubSub } from "graphql-subscriptions";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { createHandler } from "graphql-sse";
@@ -54,6 +54,22 @@ function auth(req: IncomingMessage) {
   }
   return false;
 }
+
+function handleCookieRequest(req: Request, res: Response) {
+  res.setHeader("Set-Cookie", [`auth=123; Path=/`]);
+  res.send("OK");
+}
+
+app.post(
+  "/requestCookie",
+  cors({
+    allowedHeaders: ["Cookie", "Origin", "Accept", "Content-Type"],
+    exposedHeaders: ["Set-Cookie"],
+    origin: true,
+    credentials: true,
+  }),
+  handleCookieRequest
+);
 
 // Create the GraphQL over SSE handler
 const handler = createHandler({
