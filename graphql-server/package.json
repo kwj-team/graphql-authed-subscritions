@@ -21,6 +21,7 @@
     "@graphql-tools/schema": "^8.3.6",
     "apollo-server-core": "3.6.7",
     "apollo-server-express": "3.6.7",
+    "axios": "^0.26.1",
     "cookie": "^0.4.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
