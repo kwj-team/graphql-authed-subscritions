@@ -32,7 +32,16 @@ https://websockets.readthedocs.io/en/latest/topics/authentication.html#sending-c
 
 Our current system authorized with COOKIES so that approach seemed like the best one for us. But for the sake of 
 
-~~~ If your server and client support http/2 you may think of it as a kind of bi-directional connection where interactions the other way are using standard http requests, but reusing same (already open) connection. The only caveat of that approach is that you need to track the requests/connection yourself~~~
+~~If your server and client support http/2 you may think of it as a kind of bi-directional connection where interactions the other way are using standard http requests, but reusing same (already open) connection. The only caveat of that approach is that you need to track the requests/connection yourself~~
+
+## Running the POCs
+- `make start-backend`
+- and in different window either `make start-sse-frontend` or `make start-ws-frontend`
+
+## Summary
+
+Both websocket and sse are authorized with the usage of cookie header.
+The client set's up the cookie starting with request to the service which sets up the cookie.
 
 ## Known approaches of server->client communication
 
@@ -40,14 +49,3 @@ Our current system authorized with COOKIES so that approach seemed like the best
 - Websockets
 - Long-polling
 - Polling
-
-## Running
-`make start-backend`
-and in different window either
-`make start-sse-frontend` or `make start-ws-frontend`
-
-<!-- TODO WJ -->
-
-Write down a userless-login
-Write example of browser cookie setup
-Write example of start usage 
