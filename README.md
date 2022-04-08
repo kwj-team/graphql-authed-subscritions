@@ -58,11 +58,16 @@ Possibilies for SSE:
 
 - `make start-backend`
 - and in different window either `make start-sse-frontend` or `make start-ws-frontend`
+- `make start-server-client` - runs client on node
 
 ## Summary
 
 Both websocket and sse are authorized with the usage of cookie header.
 The client set's up the cookie starting with request to the service which sets up the cookie.
+
+## Graphlq-sse
+
+It doesn't follow sse protocol per spec so in order to consume it you have to use provided library which is far from optimal. although it should be quite easy to extract events into default protocol schema so that alternatives can be used.
 
 ## Known approaches of server->client communication
 

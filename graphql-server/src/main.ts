@@ -10,6 +10,8 @@ import { WebSocketServer } from "ws";
 import cors from "cors";
 import { CloseCode } from "graphql-ws";
 import cookie from "cookie";
+import axios from "axios";
+import bodyParser from "body-parser";
 
 const PORT = 4000;
 const pubsub = new PubSub();
@@ -93,6 +95,28 @@ app.use(
   }),
   handler
 );
+app.use("/webhook", bodyParser.json());
+let webhooks = [];
+app.post("/webhook", (req, res) => {
+  webhooks.push(req.body);
+  res.send("OK");
+});
+
+app.delete("/webhook", (req, res) => {
+  webhooks = webhooks.filter((x) => {
+    x.url !== req.body.url;
+  });
+  res.send("OK");
+});
+
+pubsub.subscribe("NUMBER_INCREMENTED", (payload) => {
+  for (const webhook of webhooks) {
+    axios.post(webhook.url, payload).catch((e) => {
+      console.error("Failed to send webhook", webhook.url, e);
+    });
+  }
+});
+
 const httpServer = createServer(app);
 
 // Set up WebSocket server.
