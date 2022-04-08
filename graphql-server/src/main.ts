@@ -48,7 +48,7 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
 
 function auth(req: IncomingMessage) {
-  if (req) {
+  if (req && req.headers.cookie) {
     const cookies = cookie.parse(req.headers.cookie);
     return cookies.auth === "123";
   }
